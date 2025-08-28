@@ -55,11 +55,32 @@ def load_meta() -> pd.DataFrame:
     Expect a Parquet file ``data/discursos_meta.parquet`` with fields
     ``CodigoPronunciamento, Data, NomeParlamentar, SiglaPartidoParlamentarNaData,
     tamanho_discurso_palavras, TextoIntegral``.
-    If the file is absent, an empty dataframe is returned.
+    If the file is absent, fall back to ``Amostra_1.sqlite``
+    and fetch the same fields from table ``DiscursosAmostra``.
     """
     meta_path = Path("data/discursos_meta.parquet")
     if meta_path.exists():
         return pd.read_parquet(meta_path)
+
+    sqlite_path = Path("Amostra_1.sqlite")
+    if sqlite_path.exists():
+        import sqlite3
+
+        con = sqlite3.connect(sqlite_path)
+        query = (
+            "SELECT CodigoPronunciamento, DataPronunciamento as Data,"
+            " NomeParlamentar, SiglaPartidoParlamentarNaData, TextoIntegral"
+            " FROM DiscursosAmostra"
+        )
+        df = pd.read_sql_query(query, con)
+        con.close()
+
+        # compute speech length in words
+        df["tamanho_discurso_palavras"] = (
+            df["TextoIntegral"].fillna("").str.split().apply(len)
+        )
+        return df
+
     return pd.DataFrame()
 
 
