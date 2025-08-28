@@ -124,11 +124,31 @@ else:
     df_plot = df_filt.assign(peso=1)
 
 # Glossary --------------------------------------------------------------
-GLOSSARIO = {
-    "metafora": "Transferência de significado por comparação implícita.",
-    "ironia": "Expressão de sentido contrário ao literal.",
-    "hiperbole": "Exagero intencional.",
-}
+
+
+def load_glossario(path: Path = Path("glossario.txt")) -> dict:
+    """Load glossary entries from a text file.
+
+    The file must contain blocks separated by blank lines where the first
+    line is the term and the following lines compose its definition.
+    """
+
+    gloss = {}
+    try:
+        content = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return gloss
+    for block in content.split("\n\n"):
+        lines = [ln.strip() for ln in block.splitlines() if ln.strip()]
+        if not lines:
+            continue
+        term = lines[0]
+        definition = " ".join(lines[1:])
+        gloss[term] = definition
+    return gloss
+
+
+GLOSSARIO = load_glossario()
 with st.sidebar.expander("Glossário"):
     for k, v in GLOSSARIO.items():
         st.markdown(f"**{k}** — {v}")
@@ -188,7 +208,30 @@ elif page == "Explorar":
         ]
         if c in df_filt.columns
     ]
-    st.dataframe(df_filt[cols], use_container_width=True)
+    df_display = df_filt[cols].copy()
+    if "CodigoPronunciamento" in df_display:
+        df_display["Discurso"] = df_display["CodigoPronunciamento"].apply(
+            lambda x: f"?page=Discurso&codigo={x}"
+        )
+        show_cols = [c for c in df_display.columns if c != "CodigoPronunciamento"]
+        try:
+            st.dataframe(
+                df_display[show_cols],
+                use_container_width=True,
+                column_config={
+                    "Discurso": st.column_config.LinkColumn(
+                        "Discurso", display_text="ver"
+                    )
+                },
+            )
+        except Exception:
+            df_tmp = df_display[show_cols].copy()
+            df_tmp["Discurso"] = df_tmp["Discurso"].apply(
+                lambda url: f"<a href='{url}'>ver</a>"
+            )
+            st.markdown(df_tmp.to_html(escape=False, index=False), unsafe_allow_html=True)
+    else:
+        st.dataframe(df_display, use_container_width=True)
     csv = df_filt[cols].to_csv(index=False).encode("utf-8")
     st.download_button("Exportar CSV", csv, "spans.csv", "text/csv")
 
