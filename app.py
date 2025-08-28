@@ -97,8 +97,9 @@ with st.sidebar:
                 "q": q,
                 "page": page,
             }
-            st.experimental_set_query_params(**new_params)
-            st.experimental_rerun()
+            params = st.query_params
+            st.query_params.clear()  # para resetar
+            st.query_params.update(new_params)  # para aplicar
     with btn2:
         if st.button("Resetar filtros"):
             st.experimental_set_query_params(page=page)

@@ -35,7 +35,7 @@ from src.login_openai import login     # deve retornar um client compatível com
 from src.structured_outputs import schema  # teu schema JSON para Structured Outputs
 
 # Caminhos
-SRC_DB = Path("data/Amostra_1.sqlite")
+SRC_DB = Path("Amostra_1.sqlite")
 SRC_TABLE = "DiscursosAmostra"
 OUT_DIR = Path("data/batch_figuras")
 OUT_DIR.mkdir(parents=True, exist_ok=True)

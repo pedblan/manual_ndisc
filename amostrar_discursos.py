@@ -23,7 +23,7 @@ from typing import Dict, List, Tuple
 
 SRC_DISCURSOS = Path("data/Discursos.sqlite")
 SRC_SENADORES = Path("data/Senadores.sqlite")
-DEST_DB = Path("data/Amostra_1.sqlite")
+DEST_DB = Path("Amostra_1.sqlite")
 
 TBL_DISCURSOS = "Discursos"
 TBL_SAIDA = "DiscursosAmostra"
